@@ -22,7 +22,7 @@ do
 		# 2) Install necessary applications
 		apps|all)
 
-		APPS="vim git xclip"
+		APPS="vim git g++ gcc valgrind make htop glances aircrack-ng macchanger okular qbittorrent speedtest-cli youtube-dl xclip"
 		PACMAN=""
 		PACMAN_FLAGS=""
 
