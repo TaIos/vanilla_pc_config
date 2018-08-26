@@ -50,7 +50,7 @@ do
 
 		GIT_PASSWORD="1d0b23cb1666aa615728510ea2ff3005" # TODO CHANGE PASSWOD ON BITBUCKET !!!
 		CLONED_DIRS="vimrc bashrc develop dokumenty"
-		CLONED_DIRS="vimrc bashrc develop" # TODO delete this line
+		CLONED_DIRS="bashrc vimrc" # TODO delete this line
 		TMP_DIR='/tmp/git_repos_tmp'
 		HOME_DIR='/home/liveuser' # TODO make prompt
 		TIMESTAMP=$(date +%Y-%m-%d.%H:%M:%S)
@@ -115,7 +115,7 @@ do
 
 		#------------------------------
 		# Setup BASHRC
-		#
+		
 		# backup old bashrc, if there is any
 		if [ -e "${HOME_DIR}/.bashrc" ]
 		then
@@ -132,10 +132,9 @@ do
 		mv "${HOME_DIR}/bashrc" "${HOME_DIR}/.bashrc_dir"
 
 		# set symlink to correct bashrc (bashrc_fedora, bashrc_arch, bashrc_ubuntu)
-		SYSTEM_ID=$(cat /etc/*-release | grep 'ID=' |cut  -d'=' -f2)
-		ln -sf "${HOME_DIR}/.bashrc_dir/bashrc_$SYSTEM_ID" "${HOME_DIR}/.bashrc" 
+		SYSTEM_ID=$(cat /etc/*-release | grep 'ID=' | head -n 1 |cut  -d'=' -f2) # TODO is there a better way ?
+		ln -sf "${HOME_DIR}/.bashrc_dir/bashrc_${SYSTEM_ID}" "${HOME_DIR}/.bashrc" 
 
-		source "${HOME_DIR}/.bashrc"
 		#------------------------------
 
 		# cleanup /tmp/TMP_DIR
