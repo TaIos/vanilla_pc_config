@@ -2,8 +2,8 @@
 
 ## This script is for automating repetetive tasks 
 ## after installing new Linux system
-#
-#
+
+
 ## Particular sections can be invoked passing argument/s
 ## arguments: all, terminal, apps, git_config, git_fetch
 
@@ -23,8 +23,11 @@ do
 		apps|all)
 
 		APPS="vim git xclip"
-		PACMAN="dnf" # TODO make prompt
-		PACMAN_FLAGS="install -y"
+		PACMAN=""
+		PACMAN_FLAGS=""
+
+		read -p 'Package manager: ' PACMAN
+		read -p 'Package flags: ' PACMAN_FLAGS
 
 		sudo $PACMAN $PACMAN_FLAGS $APPS
 		;;&
@@ -50,10 +53,12 @@ do
 
 		GIT_PASSWORD="1d0b23cb1666aa615728510ea2ff3005" # TODO CHANGE PASSWOD ON BITBUCKET !!!
 		CLONED_DIRS="vimrc bashrc develop dokumenty"
-		CLONED_DIRS="bashrc vimrc" # TODO delete this line
+		CLONED_DIRS="bashrc vimrc" # TODO delete this line in production
 		TMP_DIR='/tmp/git_repos_tmp'
-		HOME_DIR='/home/liveuser' # TODO make prompt
+		HOME_DIR=""
 		TIMESTAMP=$(date +%Y-%m-%d.%H:%M:%S)
+
+		read -p 'Home directory: ' HOME_DIR
 
 		# create TMP_DIR if it doesn't exist
 		if [ ! -d "${TMP_DIR}" ]
