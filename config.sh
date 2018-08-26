@@ -48,19 +48,20 @@ do
 		# 4) Fetch GIT reposiroties & cpy them to home
 		git_fetch|all)
 
-		GIT_PASSWORD="test"
+		GIT_PASSWORD="1d0b23cb1666aa615728510ea2ff3005"
 		CLONED_DIRS="vimrc bashrc develop dokumenty"
 		CLONED_DIRS="vimrc bashrc develop"
-		TMP_REPO='/tmp/git_repos_tmp'
+		TMP_DIR='/tmp/git_repos_tmp'
 		HOME_DIR='/home/slarty'
+		TIMESTAMP=$(date +%Y-%m-%d.%H:%M:%S)
 
-		# create TMP_REPO if it doesn't exist
-		if [ ! -d "${TMP_REPO}" ]
+		# create TMP_DIR if it doesn't exist
+		if [ ! -d "${TMP_DIR}" ]
 		then
-			mkdir "${TMP_REPO}"
+			mkdir "${TMP_DIR}"
 		fi
 
-		cd "${TMP_REPO}"
+		cd "${TMP_DIR}"
 
 
 		if [ -z "$GIT_PASSWORD" ]
@@ -72,41 +73,87 @@ do
 		# (not splitting the string as individual words, interpreting as one string)
 		#setopt shwordsplit
 
-		# 1) Clone git repos to /tmp/TMP_REPO
-		# 2) Create dirs specified in CLONED_DIRS in HOME_DIR, if they do not exist
-		# 3) Copy cloned git repos from /tmp/TMP_REPO to created dirs in HOME_DIR
-		# 4) Setup vimrc/bashrc
+		# 1) Clone git repo to /tmp/TMP_DIR
+		# 2) Create dir specified in CLONED_DIRS in HOME_DIR, if dosn't exist
+		# 3) Copy cloned git repos from /tmp/TMP_DIR to created? dir in HOME_DIR
+		# 4) Setup vimrc
+		# 5) Setup bashrc
 		for dir in $CLONED_DIRS
 		do
 
-			echo "$dir"
-			continue
-			# 1) clone git repos
+			# 1) Clone git repo
 			git clone https://kaldomain:"${GIT_PASSWORD}"@bitbucket.org/kaldomain/"${dir}".git 
 
-			# 2) create dirs
+
+			# 2) Create dir if not exist
 			if [ ! -d "${HOME_DIR}/${dir}" ]
 			then
 				mkdir "${HOME_DIR}/${dir}"
 			fi
 
-			# 3) copy to dirs
-			# if the directory is empty, copy to it
-			if [ -z "$(ls -A  "${HOME_DIR}/${dir}")" ]
+
+			# 3) Copy to dir
+			# if the target directory is not empty, backup it
+			if [ ! -z "$(ls -A  "${HOME_DIR}/${dir}")" ]
 			then
-					cp -r "${TMP_DIR}/$dir}" "${HOME_DIR}/${dir}"
-			# directory is not empty, create HOME_DIR/dir tmp dir and copy to it
-			else
-				mkdir "${HOME_DIR}/${dir}_tmp"
-				cp -r "${TMP_DIR}/$dir}" "${HOME_DIR}/${dir}_tmp"
+				mv "${HOME_DIR}/${dir}" "${HOME_DIR}/${dir}_old_$TIMESTAMP"
+				mkdir "${HOME_DIR}/${dir}"
+			fi
+			# copy the content
+			cp -r "${TMP_DIR}/${dir}/"* "${HOME_DIR}/${dir}"
+
+			
+			# 4) Setup vimrc
+			# backup old vimrc, if there is any
+			if [ -e "${HOME_DIR}/.vimrc" ]
+			then
+				mv "${HOME_DIR}/.vimrc" "${HOME_DIR}/.vimrc_old_$TIMESTAMP"
 			fi
 
-			# 4)
+			# if there is .vimrc_dir, backup it
+			if [ -e "${HOME_DIR}/.vimrc_dir" ]
+			then
+				mv "${HOME_DIR}/.vimrc_dir" "${HOME_DIR}/.vimrc_dir_old_$TIMESTAMP"
+			fi
 
+			# create .vimrc_dir & copy all content to it
+			mkdir "${HOME_DIR}/.vimrc_dir"
+			mv "${HOME_DIR}/vimrc/"* "${HOME_DIR}/.vimrc_dir"
+
+			# set symlink to vimrc
+			ln -s "${HOME_DIR}/.vimrc" "${HOME_DIR}/.vimrc_dir/vimrc"
+
+			#cleanup
+			rm -rf "${HOME_DIR}/vimrc"
+
+
+			# 5) Setup bashrc
+			# backup old bashrc, if there is any
+			if [ -e "${HOME_DIR}/.bashrc" ]
+			then
+				mv "${HOME_DIR}/.bashrc" "${HOME_DIR}/.bashrc_old_$TIMESTAMP"
+			fi
+
+			# if there is .bashrc_dir, backup it
+			if [ -e "${HOME_DIR}/.bashrc_dir" ]
+			then
+				mv "${HOME_DIR}/.bashrc_dir" "${HOME_DIR}/.bashrc_dir_old_$TIMESTAMP"
+			fi
+
+			# create .bashrc_dir & copy all content to it
+			mkdir "${HOME_DIR}/.bashrc_dir"
+			mv "${HOME_DIR}/bashrc/"* "${HOME_DIR}/.bashrc_dir"
+
+			# set symlink to correct bashrc (bashrc_fedora|bashrc_arch|bashrc_ubuntu)
+			$SYSTEM_ID=$(cat /etc/*-release | grep 'ID=' |cut  -d'=' -f2)
+			ln -s "${HOME_DIR}/.bashrc" "${HOME_DIR}/.bashrc_dir/bashrc_$SYSTEM_ID"
+
+			#cleanup
+			rm -rf "${HOME_DIR}/bashrc"
 		done
 
-		# cleanup /tmp/TMP_REPO
-		rm -rf "${TMP_REPO}"
+		# cleanup /tmp/TMP_DIR
+		rm -rf "${TMP_DIR}"
 		;;&
 		
 		#-------------------------------------------------------------------------------
