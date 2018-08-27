@@ -52,6 +52,7 @@ do
 		APPS="vim git g++ gcc-c++ clang valgrind make htop glances aircrack-ng macchanger okular qbittorrent speedtest-cli youtube-dl xclip"
 
 		echo "Installing applications . . . "
+		echo "q for end"
 		# ask user to choose which apps to install
 		APPS_TMP=""
 		for app in $APPS
@@ -60,6 +61,8 @@ do
 			if [[ "$ANS" =~ ^[Yy]$ ]]
 			then
 				APPS_TMP+="$app "
+			elif [ "$ANS" == 'q' ]
+				break
 			fi
 		done
 		APPS="$APPS_TMP"
