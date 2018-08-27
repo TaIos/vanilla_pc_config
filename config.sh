@@ -3,15 +3,15 @@
 ## This script is for automating repetetive tasks 
 ## after installing new Linux system
 
-
 ## Particular sections can be invoked passing argument/s
 ## arguments: all, terminal, apps, git_config, git_fetch
 
-# TODO tell user what is happening
+
+echo "Testing for internet connection ..."
 ping -c 3 google.com > /dev/null 2>&1 
 if [ $? -ne 0 ]
 then
-	echo "Internet connectivity needed."
+	echo "Internet connectivity needed to run this script."
 	exit 666
 fi
 
@@ -94,15 +94,35 @@ do
 
 		HOME_DIR=""
 		TMP_DIR='/tmp/git_repos_tmp'
-		CLONED_DIRS="vimrc bashrc develop dokumenty" # TODO make prompt
-		CLONED_DIRS="bashrc vimrc develop" # TODO delete this line
+		CLONED_DIRS="vimrc bashrc develop dokumenty"
 		GIT_PASSWORD="1d0b23cb1666aa615728510ea2ff3005" # TODO CHANGE PASSWOD ON BITBUCKET !!!
 		TIMESTAMP=$(date +%Y-%m-%d.%H:%M:%S)
 
-		# TODO make guess
+		# prompt to choose directories to clone
+		CLONED_DIRS_TMP=""
+		for dir in $CLONED_DIRS
+		do
+			read -p 'Clone $dir [Y/N]? ' ANS
+			if [[ $ANS =~ ^[Yy]$ ]]
+			then
+				CLONED_DIRS_TMP+="$dir "
+			fi
+		done
+
+		CLONED_DIRS="$CLONED_DIRS_TMP"
+		echo "Cloning $CLONED_DIRS ..."
+
+
+		# ask user for home directory
 		if [ -z "$HOME_DIR" ]
 		then
-			read -p 'Home directory: ' HOME_DIR
+			HOME_DIR="$HOME"
+			read -p "Is this your home directory: $HOME_DIR\n[Y/N]: " ANS
+
+			if ! [[ "$ANS" =~ ^[Yy]$ ]]
+			then
+				read -p 'Enter home directory: ' HOME_DIR
+			fi
 		fi
 
 		if [ -z "$GIT_PASSWORD" ]
@@ -173,7 +193,7 @@ do
 
 		# variable used to set the correct version of bashrc
 		# 	-> bashrc_fedora, bashrc_arch, bashrc_ubuntu
-		SYSTEM_ID=$(cat /etc/*-release | grep -E '^ID=' | head -n 1 |cut  -d'=' -f2) # TODO is there a better way ?
+		SYSTEM_ID=$(cat /etc/*-release | grep -E '^ID=' | head -n 1 |cut  -d'=' -f2)
 		
 		# if there is bashrc to setup
 		if [ -e "${HOME_DIR}/bashrc/bashrc_${SYSTEM_ID}" ]
