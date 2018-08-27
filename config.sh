@@ -5,13 +5,22 @@
 
 ## Particular sections can be invoked passing argument/s
 ## arguments: all, terminal, apps, git_config, git_fetch
+################################################################################
 
+# run this script with root privileges
+if [ $EUID -ne 0 ]; then
+    sudo "$0" "$@"
+    exit $?
+fi
+
+# exit if there was no argument
 if [ "$#" -eq 0 ]
 then
 	echo "Nothing to do, specify some option."
 	exit 0
 fi
 
+# check for internet connection
 echo -n "Testing for internet connection . . . " 
 ping -c 3 google.com > /dev/null 2>&1 
 if [ $? -ne 0 ]
@@ -30,7 +39,7 @@ do
 		terminal|all)
 
 		echo -n "Setting gnome-terminal to open maximized . . . "
-		sudo sed -i 's/^Exec=gnome-terminal$/Exec=gnome-terminal --window --maximize/' /usr/share/applications/org.gnome.Terminal.desktop
+		sed -i 's/^Exec=gnome-terminal$/Exec=gnome-terminal --window --maximize/' /usr/share/applications/org.gnome.Terminal.desktop
 		echo -e "done\n"
 		;;&
 		
@@ -71,7 +80,7 @@ do
 
 			for app in $APPS
 			do
-				sudo $PACMAN $PACMAN_FLAGS $app
+				$PACMAN $PACMAN_FLAGS $app
 			done
 		else
 			echo "Nothing to install!"
