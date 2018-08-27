@@ -7,6 +7,14 @@
 ## Particular sections can be invoked passing argument/s
 ## arguments: all, terminal, apps, git_config, git_fetch
 
+# TODO tell user what is happening
+ping -c 3 google.com > /dev/null 2>&1 
+if [ $? -ne 0 ]
+then
+	echo "Internet connectivity needed."
+	exit 666
+fi
+
 for arg in "$@"
 do
 	case "$arg" in
@@ -24,7 +32,7 @@ do
 
 		PACMAN=""
 		PACMAN_FLAGS=""
-		APPS="vim git g++ gcc valgrind make htop glances aircrack-ng macchanger okular qbittorrent speedtest-cli youtube-dl xclip"
+		APPS="vim git g++ gcc-c++ clang valgrind make htop glances aircrack-ng macchanger okular qbittorrent speedtest-cli youtube-dl xclip"
 
 		if [ -z "$PACMAN" ]
 		then
@@ -36,7 +44,15 @@ do
 			read -p 'Package flags: ' PACMAN_FLAGS
 		fi
 
-		sudo $PACMAN $PACMAN_FLAGS $APPS
+		# Enable if shell is not interpreting string as words 
+		# (not splitting the string as individual words, interpreting as one string)
+		#setopt shwordsplit
+
+		for app in $APPS
+		do
+			sudo $PACMAN $PACMAN_FLAGS $app
+		done
+
 		;;&
 
 		#-------------------------------------------------------------------------------
@@ -78,10 +94,12 @@ do
 
 		HOME_DIR=""
 		TMP_DIR='/tmp/git_repos_tmp'
-		CLONED_DIRS="vimrc bashrc develop dokumenty"
+		CLONED_DIRS="vimrc bashrc develop dokumenty" # TODO make prompt
+		CLONED_DIRS="bashrc vimrc develop" # TODO delete this line
 		GIT_PASSWORD="1d0b23cb1666aa615728510ea2ff3005" # TODO CHANGE PASSWOD ON BITBUCKET !!!
 		TIMESTAMP=$(date +%Y-%m-%d.%H:%M:%S)
 
+		# TODO make guess
 		if [ -z "$HOME_DIR" ]
 		then
 			read -p 'Home directory: ' HOME_DIR
@@ -155,7 +173,7 @@ do
 
 		# variable used to set the correct version of bashrc
 		# 	-> bashrc_fedora, bashrc_arch, bashrc_ubuntu
-		SYSTEM_ID=$(cat /etc/*-release | grep 'ID=' | head -n 1 |cut  -d'=' -f2) # TODO is there a better way ?
+		SYSTEM_ID=$(cat /etc/*-release | grep -E '^ID=' | head -n 1 |cut  -d'=' -f2) # TODO is there a better way ?
 		
 		# if there is bashrc to setup
 		if [ -e "${HOME_DIR}/bashrc/bashrc_${SYSTEM_ID}" ]
