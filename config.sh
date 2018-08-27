@@ -22,12 +22,19 @@ do
 		# 2) Install necessary applications
 		apps|all)
 
-		APPS="vim git g++ gcc valgrind make htop glances aircrack-ng macchanger okular qbittorrent speedtest-cli youtube-dl xclip"
 		PACMAN=""
 		PACMAN_FLAGS=""
+		APPS="vim git g++ gcc valgrind make htop glances aircrack-ng macchanger okular qbittorrent speedtest-cli youtube-dl xclip"
 
-		read -p 'Package manager: ' PACMAN
-		read -p 'Package flags: ' PACMAN_FLAGS
+		if [ -z "$PACMAN" ]
+		then
+			read -p 'Package manager: ' PACMAN
+		fi
+
+		if [ -z "$PACMAN_FLAGS" ]
+		then
+			read -p 'Package flags: ' PACMAN_FLAGS
+		fi
 
 		sudo $PACMAN $PACMAN_FLAGS $APPS
 		;;&
@@ -35,10 +42,28 @@ do
 		#-------------------------------------------------------------------------------
 		# 3) Setup GIT
 		git_config|all)
+		GIT_NAME="Martin Safranek"
+		GIT_EMAIL="martinsafranek1997@seznam.cz"
+		GIT_EDITOR="vim"
 
-		git config --global user.name "Martin Safranek"
-		git config --global user.email "martinsafranek1997@seznam.cz"
-		git config --global core.editor vim
+		if [ -z "$GIT_NAME" ]
+		then
+			read -p 'Git name: ' GIT_NAME
+		fi
+
+		if [ -z "$GIT_EMAIL" ]
+		then
+			read -p 'Git email: ' GIT_EMAIL
+		fi
+
+		if [ -z "$GIT_EDITOR" ]
+		then
+			read -p 'Git editor: ' GIT_EDITOR
+		fi
+
+		git config --global user.name "$GIT_NAME"
+		git config --global user.email "$GIT_EMAIL"
+		git config --global core.editor "$GIT_EDITOR"
 
 		git config --global alias.co checkout
 		git config --global alias.br branch
@@ -48,19 +73,26 @@ do
 		;;&
 
 		#-------------------------------------------------------------------------------
-		# 4) Fetch GIT reposiroties & cpy them to home
-		git_fetch|all)
+		# 4) Fetch GIT reposiroties & copy them to home & setup bashrc and vimrc
+		git_clone|all)
 
-		GIT_PASSWORD="1d0b23cb1666aa615728510ea2ff3005" # TODO CHANGE PASSWOD ON BITBUCKET !!!
-		CLONED_DIRS="vimrc bashrc develop dokumenty"
-		CLONED_DIRS="bashrc vimrc" # TODO delete this line in production
-		TMP_DIR='/tmp/git_repos_tmp'
 		HOME_DIR=""
+		TMP_DIR='/tmp/git_repos_tmp'
+		CLONED_DIRS="vimrc bashrc develop dokumenty"
+		GIT_PASSWORD="1d0b23cb1666aa615728510ea2ff3005" # TODO CHANGE PASSWOD ON BITBUCKET !!!
 		TIMESTAMP=$(date +%Y-%m-%d.%H:%M:%S)
 
-		read -p 'Home directory: ' HOME_DIR
+		if [ -z "$HOME_DIR" ]
+		then
+			read -p 'Home directory: ' HOME_DIR
+		fi
 
-		# create TMP_DIR if it doesn't exist
+		if [ -z "$GIT_PASSWORD" ]
+		then
+			read -sp 'GIT password: ' GIT_PASSWORD
+		fi
+
+		# create TMP_DIR
 		if [ ! -d "${TMP_DIR}" ]
 		then
 			mkdir "${TMP_DIR}"
@@ -68,10 +100,6 @@ do
 
 		cd "${TMP_DIR}"
 
-		if [ -z "$GIT_PASSWORD" ]
-		then
-			read -sp 'GIT password: ' GIT_PASSWORD
-		fi
 
 		# Enable if shell is not interpreting string as words 
 		# (not splitting the string as individual words, interpreting as one string)
@@ -89,7 +117,7 @@ do
 			# b) If such directory exists in HOME_DIR, backup it
 			if [ -d "${HOME_DIR}/${dir}" ]
 			then
-				mv "${HOME_DIR}/${dir}" "${HOME_DIR}/${dir}_old_$TIMESTAMP"
+				mv "${HOME_DIR}/${dir}" "${HOME_DIR}/${dir}_$TIMESTAMP.bak"
 			fi
 
 			# c) move
@@ -99,46 +127,57 @@ do
 		#------------------------------
 		# Setup VIMRC
 		
-		# backup old vimrc, if there is any
-		if [ -e "${HOME_DIR}/.vimrc" ]
+		# if there is vimrc to setup
+		if [ -e "${HOME_DIR}/vimrc/vimrc" ]
 		then
-			mv "${HOME_DIR}/.vimrc" "${HOME_DIR}/.vimrc_old_$TIMESTAMP"
+			# backup old vimrc, if there is any
+			if [ -e "${HOME_DIR}/.vimrc" ]
+			then
+				mv "${HOME_DIR}/.vimrc" "${HOME_DIR}/.vimrc_$TIMESTAMP.bak"
+			fi
+
+			# backup old .vimrc_dir, if there is any
+			if [ -e "${HOME_DIR}/.vimrc_dir" ]
+			then
+				mv "${HOME_DIR}/.vimrc_dir" "${HOME_DIR}/.vimrc_dir_$TIMESTAMP.bak"
+			fi
+
+			# create .vimrc_dir & copy all content to it
+			mv "${HOME_DIR}/vimrc" "${HOME_DIR}/.vimrc_dir"
+
+			# set symlink to vimrc
+			ln -sf "${HOME_DIR}/.vimrc_dir/vimrc" "${HOME_DIR}/.vimrc" 
 		fi
-
-		# backup old .vimrc_dir, if there is any
-		if [ -e "${HOME_DIR}/.vimrc_dir" ]
-		then
-			mv "${HOME_DIR}/.vimrc_dir" "${HOME_DIR}/.vimrc_dir_old_$TIMESTAMP"
-		fi
-
-		# create .vimrc_dir & copy all content to it
-		mv "${HOME_DIR}/vimrc" "${HOME_DIR}/.vimrc_dir"
-
-		# set symlink to vimrc
-		ln -sf "${HOME_DIR}/.vimrc_dir/vimrc" "${HOME_DIR}/.vimrc" 
 
 
 		#------------------------------
 		# Setup BASHRC
-		
-		# backup old bashrc, if there is any
-		if [ -e "${HOME_DIR}/.bashrc" ]
-		then
-			mv "${HOME_DIR}/.bashrc" "${HOME_DIR}/.bashrc_old_$TIMESTAMP"
-		fi
 
-		# backup old .bashrc_dir, if there is any
-		if [ -e "${HOME_DIR}/.bashrc_dir" ]
-		then
-			mv "${HOME_DIR}/.bashrc_dir" "${HOME_DIR}/.bashrc_dir_old_$TIMESTAMP"
-		fi
-
-		# create .bashrc_dir & copy all content to it
-		mv "${HOME_DIR}/bashrc" "${HOME_DIR}/.bashrc_dir"
-
-		# set symlink to correct bashrc (bashrc_fedora, bashrc_arch, bashrc_ubuntu)
+		# variable used to set the correct version of bashrc
+		# 	-> bashrc_fedora, bashrc_arch, bashrc_ubuntu
 		SYSTEM_ID=$(cat /etc/*-release | grep 'ID=' | head -n 1 |cut  -d'=' -f2) # TODO is there a better way ?
-		ln -sf "${HOME_DIR}/.bashrc_dir/bashrc_${SYSTEM_ID}" "${HOME_DIR}/.bashrc" 
+		
+		# if there is bashrc to setup
+		if [ -e "${HOME_DIR}/bashrc/bashrc_${SYSTEM_ID}" ]
+		then
+			# backup old bashrc, if there is any
+			if [ -e "${HOME_DIR}/.bashrc" ]
+			then
+				mv "${HOME_DIR}/.bashrc" "${HOME_DIR}/.bashrc_$TIMESTAMP.bak"
+			fi
+
+			# backup old .bashrc_dir, if there is any
+			if [ -e "${HOME_DIR}/.bashrc_dir" ]
+			then
+				mv "${HOME_DIR}/.bashrc_dir" "${HOME_DIR}/.bashrc_dir_$TIMESTAMP.bak"
+			fi
+
+			# create .bashrc_dir & copy all content to it
+			mv "${HOME_DIR}/bashrc" "${HOME_DIR}/.bashrc_dir"
+
+			# set symlink to correct bashrc 
+			ln -sf "${HOME_DIR}/.bashrc_dir/bashrc_${SYSTEM_ID}" "${HOME_DIR}/.bashrc" 
+		fi
 
 		#------------------------------
 
