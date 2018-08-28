@@ -144,6 +144,9 @@ do
 		git config --global alias.st status
 		git config --global alias.ll 'log --oneline --graph --all --decorate'
 
+		# keep password cached in memory for (by default) 15 minutes
+		git config --global credential.helper cache
+
 		echo "done"
 		print_delimiter
 		;;&
@@ -155,7 +158,6 @@ do
 		HOME_DIR=""
 		TMP_DIR='/tmp/git_repos_tmp'
 		CLONED_DIRS="vimrc bashrc develop dokumenty"
-		GIT_PASSWORD=""
 		TIMESTAMP=$(date +%Y-%m-%d.%H:%M:%S)
 
 		echo -e "Cloning git repositories and setting up vimrc/bashrc . . .\n"
@@ -192,14 +194,6 @@ do
 				fi
 			fi
 
-			# get git password 
-			if [ -z "$GIT_PASSWORD" ]
-			then
-				read -sp "GIT password: " GIT_PASSWORD
-				echo
-				print_delimiter
-			fi
-
 			# create TMP_DIR
 			if [ ! -d "${TMP_DIR}" ]
 			then
@@ -215,8 +209,8 @@ do
 			# c) Move cloned git repos from /tmp/TMP_DIR to HOME_DIR
 			for dir in $CLONED_DIRS
 			do
-				# a) Clone git repo
-				git clone https://kaldomain:"${GIT_PASSWORD}"@bitbucket.org/kaldomain/"${dir}".git 
+				# a) Clone git repo 
+				git clone https://kaldomain@bitbucket.org/kaldomain/"${dir}".git 
 
 				# b) If such directory exists in HOME_DIR, backup it
 				if [ -d "${HOME_DIR}/${dir}" ]
