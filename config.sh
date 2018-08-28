@@ -7,28 +7,32 @@
 ## arguments: all, terminal, apps, git_config, git_fetch
 ################################################################################
 
-# run this script with root privileges
-if [ $EUID -ne 0 ]; then
-    sudo "$0" "$@"
-    exit $?
-fi
+print_delimiter()
+{
+	for i in {1..80}
+	do
+		echo -n "#"
+	done
+	echo
+}
 
 # exit if there was no argument
 if [ "$#" -eq 0 ]
 then
 	echo "Nothing to do, specify some option."
-	exit 0
+	exit 1
 fi
 
 # check for internet connection
 echo -n "Testing for internet connection . . . " 
-ping -c 3 google.com > /dev/null 2>&1 
+ping -w 1 -c 1 google.com > /dev/null 2>&1 
 if [ $? -ne 0 ]
 then
-	echo "Internet connectivity needed to run this script."
+	echo -e "fail\nInternet connectivity needed to run this script."
 	exit 666
 fi
-echo -e "done\n"
+echo -e "done"
+print_delimiter
 
 for arg in "$@"
 do
@@ -38,9 +42,10 @@ do
 		# 1) Set gnome-terminal to open mazimized
 		terminal|all)
 
-		echo -n "Setting gnome-terminal to open maximized . . . "
-		sed -i 's/^Exec=gnome-terminal$/Exec=gnome-terminal --window --maximize/' /usr/share/applications/org.gnome.Terminal.desktop
-		echo -e "done\n"
+		echo "Setting gnome-terminal to open maximized . . ."
+		sudo sed -i 's/^Exec=gnome-terminal$/Exec=gnome-terminal --window --maximize/' /usr/share/applications/org.gnome.Terminal.desktop
+		echo ". . . done"
+		print_delimiter
 		;;&
 		
 		#-------------------------------------------------------------------------------
@@ -51,24 +56,37 @@ do
 		PACMAN_FLAGS=""
 		APPS="vim git g++ gcc-c++ clang valgrind make htop glances aircrack-ng macchanger okular qbittorrent speedtest-cli youtube-dl xclip"
 
-		echo "Installing applications . . . "
-		echo "q for end"
-		# ask user to choose which apps to install
-		APPS_TMP=""
-		for app in $APPS
-		do
-			read -p "Install $app [y/n]? " ANS					
-			if [[ "$ANS" =~ ^[Yy]$ ]]
+		echo "APPS: '$APPS'"
+		echo "Install all[a], abort installation[q] or choose apps[c] to install ?"
+		read -p ': ' ANS
+
+		# choose
+		if [[ "$ANS" =~ ^[cC]$ ]]
+		then
+			APPS_TMP=""
+			echo "[q] for quit choosing"
+			for app in $APPS
+			do
+				read -p "Install $app [y/n]? " ANS					
+				if [[ "$ANS" =~ ^[Yy]$ ]]
+				then
+					APPS_TMP+="$app "
+				elif [[ "$ANS" =~ ^[qQ]$ ]]
+				then
+					break
+				fi
+			done
+			echo
+			APPS="$APPS_TMP"
+
+		# quit
+		elif [[ "$ANS" =~ ^[qQ]$ ]]
 			then
-				APPS_TMP+="$app "
-			elif [ "$ANS" == 'q' ]
-				break
-			fi
-		done
-		APPS="$APPS_TMP"
-		echo
+			APPS=""
+		fi
 
 
+		# install apps, if there are any
 		if [ ! -z "$APPS" ]
 		then
 			if [ -z "$PACMAN" ]
@@ -81,15 +99,16 @@ do
 				read -p 'Package flags: ' PACMAN_FLAGS
 			fi
 
+			# install apps, one by one
 			for app in $APPS
 			do
-				$PACMAN $PACMAN_FLAGS $app
+				sudo $PACMAN $PACMAN_FLAGS $app
 			done
 		else
 			echo "Nothing to install!"
 		fi
-
-		echo 
+		
+		print_delimiter
 		;;&
 
 		#-------------------------------------------------------------------------------
@@ -125,7 +144,8 @@ do
 		git config --global alias.st status
 		git config --global alias.ll 'log --oneline --graph --all --decorate'
 
-		echo -e "done\n"
+		echo "done"
+		print_delimiter
 		;;&
 
 		#-------------------------------------------------------------------------------
@@ -135,10 +155,11 @@ do
 		HOME_DIR=""
 		TMP_DIR='/tmp/git_repos_tmp'
 		CLONED_DIRS="vimrc bashrc develop dokumenty"
-		GIT_PASSWORD="1d0b23cb1666aa615728510ea2ff3005" # TODO CHANGE PASSWOD ON BITBUCKET !!!
+		GIT_PASSWORD=""
 		TIMESTAMP=$(date +%Y-%m-%d.%H:%M:%S)
 
 		echo -e "Cloning git repositories and setting up vimrc/bashrc . . .\n"
+		echo "REPOSITORIES: '$CLONED_DIRS'"
 
 		# prompt to choose directories to clone
 		CLONED_DIRS_TMP=""
@@ -153,9 +174,10 @@ do
 
 		CLONED_DIRS="$CLONED_DIRS_TMP"
 
+		# clone directories, if there are any
 		if [ ! -z "$CLONED_DIRS" ]
 		then
-			echo "Cloning $CLONED_DIRS ..."
+			echo -e "\nCloning '$CLONED_DIRS' ..."
 
 			# ask user for home directory
 			if [ -z "$HOME_DIR" ]
@@ -170,9 +192,12 @@ do
 				fi
 			fi
 
+			# get git password 
 			if [ -z "$GIT_PASSWORD" ]
 			then
-				read -sp 'GIT password: ' GIT_PASSWORD
+				read -sp "GIT password: " GIT_PASSWORD
+				echo
+				print_delimiter
 			fi
 
 			# create TMP_DIR
@@ -184,7 +209,7 @@ do
 			cd "${TMP_DIR}"
 
 
-			# Loop throw all CLONED_DIR ...
+			# Loop throw all CLONED_DIR and ...
 			# a) Clone git repo to /tmp/TMP_DIR
 			# b) Backup overlapping directory in HOME_DIR
 			# c) Move cloned git repos from /tmp/TMP_DIR to HOME_DIR
@@ -201,8 +226,8 @@ do
 
 				# c) move
 				mv "${TMP_DIR}/${dir}" "${HOME_DIR}"
+				print_delimiter
 			done
-			echo
 
 			#------------------------------
 			# Setup VIMRC
@@ -230,7 +255,8 @@ do
 				# set symlink to vimrc
 				ln -sf "${HOME_DIR}/.vimrc_dir/vimrc" "${HOME_DIR}/.vimrc" 
 
-				echo -e "done\n"
+				echo "done"
+				print_delimiter
 			fi
 
 
@@ -264,10 +290,10 @@ do
 				# set symlink to correct bashrc 
 				ln -sf "${HOME_DIR}/.bashrc_dir/bashrc_${SYSTEM_ID}" "${HOME_DIR}/.bashrc" 
 
-				echo -e "done\n"
+				echo "done"
 			fi
 		else
-			echo -e "There is nothing to clone!\n"
+			echo "There is nothing to clone!"
 		fi
 
 		# cleanup /tmp/TMP_DIR
