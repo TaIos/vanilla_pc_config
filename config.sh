@@ -1,14 +1,15 @@
 #!/bin/bash
 
-## This script is for automating repetetive tasks 
-## after installing new Linux system
+# This script is for automating repetetive tasks 
+# after installing new Linux system
 
-## Particular sections can be invoked passing argument/s
-## arguments: all, terminal, apps, git_config, git_fetch
+# Particular sections can be invoked passing argument/s
+# arguments: all, terminal, apps, git_config, git_fetch
+
+# Develop by Martin Šafránek in 2018
 ################################################################################
 
-print_delimiter()
-{
+function print_delimiter() {
 	for i in {1..80}
 	do
 		echo -n "#"
@@ -34,6 +35,10 @@ fi
 echo -e "done"
 print_delimiter
 
+# TODO print usage message when run with inappropriate arguments
+# TODO implement --help
+# TODO return meaningful error code
+# TODO make local variables all-lowercase
 for arg in "$@"
 do
 	case "$arg" in
@@ -209,6 +214,7 @@ do
 			# c) Move cloned git repos from /tmp/TMP_DIR to HOME_DIR
 			for dir in $CLONED_DIRS
 			do
+
 				# TODO make possible retry after wrong password
 				# TODO add ssh option to .git/config
 				# a) Clone git repo 
