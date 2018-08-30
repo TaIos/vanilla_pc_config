@@ -8,6 +8,12 @@
 
 # Develop by Martin Šafránek in 2018
 ################################################################################
+#
+# [all] clause will process every other options
+options="all terminal apps git_config git_clone"
+
+#Exit values
+# 1 => no arguments
 
 function print_delimiter() {
 	for i in {1..80}
@@ -17,12 +23,24 @@ function print_delimiter() {
 	echo
 }
 
+function print_help() {
+	>&2 echo "Usage: $0 <arg> ..."
+	>&2 echo "Arguments are: $options"
+	>&2 echo "[all] will execute every argument"
+}
+
 # exit if there was no argument
 if [ "$#" -eq 0 ]
 then
-	echo "Nothing to do, specify some option."
+	print_help
 	exit 1
 fi
+
+# check for valid arguments
+for arg in $@
+do
+	if [[ ! "$options" =~ "	
+done
 
 # check for internet connection
 echo -n "Testing for internet connection . . . " 
@@ -39,6 +57,7 @@ print_delimiter
 # TODO implement --help
 # TODO return meaningful error code
 # TODO make local variables all-lowercase
+# TODO error messages to STDERR
 for arg in "$@"
 do
 	case "$arg" in
