@@ -95,6 +95,7 @@ do
 		sudo sed -i 's/^Exec=gnome-terminal$/Exec=gnome-terminal --window --maximize/' /usr/share/applications/org.gnome.Terminal.desktop
 		echo ". . . done"
 		print_delimiter
+		echo
 		;;&
 		
 		#-------------------------------------------------------------------------------
@@ -105,7 +106,7 @@ do
 
 		pacman=""
 		pacman_flags=""
-		apps="vim git g++ gcc-c++ clang valgrind make htop glances aircrack-ng macchanger okular qbittorrent speedtest-cli youtube-dl xclip"
+		apps="vim git g++ gcc-c++ clang valgrind make htop glances aircrack-ng macchanger okular keepass.x86_64 keepas qbittorrent speedtest-cli youtube-dl xclip"
 
 		echo "apps: '$apps'"
 		echo "Install all[a], abort installation[q] or choose apps[c] to install ?"
@@ -271,7 +272,8 @@ do
 					then
 						clone_st=false
 						echo "Cloning '${dir}' into '${tmp_dir}' failed"
-						read -p 'Retry [y/n]' ans
+						echo
+						read -p "Retry cloning '${dir}' [y/n]? :" ans
 						if [[ "$ans" =~ ^[yY]$ ]]
 						then
 							continue
@@ -281,8 +283,9 @@ do
 				done
 
 				# if cloning was not succesfull, go to the next in list
-				if [ ! $clone_st ]
+				if [ "$clone_st" = false  ]
 				then
+					echo
 					continue
 				fi
 
