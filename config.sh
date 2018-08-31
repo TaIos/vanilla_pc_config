@@ -1,19 +1,33 @@
 #!/bin/bash
 
+################################################################################
 # This script is for automating repetetive tasks 
 # after installing new Linux system
+# (eg: cloning git repositories, installing apps, setting vimrc/bashrc ...)
 
-# Particular sections can be invoked passing argument/s
-# arguments: all, terminal, apps, git_config, git_fetch
+##########################################
+## Developed by Martin Šafránek in 2018 ##
+## email: martinsafranek1997@seznam.cz  ##
+##########################################
 
-# Develop by Martin Šafránek in 2018
-################################################################################
-#
-# [all] clause will process every other options
+# Particular sections of this script can be invoked passing argument/s
+#	(multiple arguments can be passed at once)
+# arguments: see [options] bellow
+
 options="all terminal apps git_config git_clone"
+# [all] executes every option
+# [terminal] set gnome-terminal to open maximized for all users
+# [apps] install list of applications using specified package manager
+# [git_config] set git aliases, name, email, editor, enable loading git password into cache
+# [git_clone] clone list of git repositories to home directory, if there
+#	was bashrc/vimrc cloned, backup current bashrc/vimrc and replace it with cloned
 
-#Exit values
-# 1 => no arguments
+# EXIT_VALUES
+# [0] all OK
+# [1] no arguments
+# [2] invalid argument/s
+# [3] no internet connection
+################################################################################
 
 function print_delimiter() {
 	for i in {1..80}
@@ -21,12 +35,25 @@ function print_delimiter() {
 		echo -n "#"
 	done
 	echo
-}
+} 
 
 function print_help() {
 	>&2 echo "Usage: $0 <arg> ..."
 	>&2 echo "Arguments are: $options"
-	>&2 echo "[all] will execute every argument"
+	>&2 echo "Multiple arguments can be passed at once, [all] will pass every argument"
+	>&2 echo "----------"
+	>&2 echo "For more information open $0 with text editor"
+}
+
+function check_internet_conn {
+	ping -w 1 -c 1 google.com > /dev/null 2>&1 
+	if [ $? -ne 0 ]
+	then
+		print_delimiter
+		>&2 echo "Internet connection needed"
+		print_delimiter
+		exit 3
+	fi
 }
 
 # exit if there was no argument
@@ -36,28 +63,27 @@ then
 	exit 1
 fi
 
+# check if --help or -h was passed
+if [ "$1" == "-h" -o "$1" == "--help" ]
+then
+	print_help
+	exit 0
+fi
+
 # check for valid arguments
 for arg in $@
 do
-	if [[ ! "$options" =~ "	
+	if [[ ! "$options" =~ (^|[[:space:]])"$arg"($|[[:space:]]) ]]
+	then
+		>&2 echo "'$arg' is invalid argument"
+		>&2 echo "valid arguments are: $options"	
+		exit 2
+	fi
 done
 
-# check for internet connection
-echo -n "Testing for internet connection . . . " 
-ping -w 1 -c 1 google.com > /dev/null 2>&1 
-if [ $? -ne 0 ]
-then
-	echo -e "fail\nInternet connectivity needed to run this script."
-	exit 666
-fi
-echo -e "done"
-print_delimiter
 
-# TODO print usage message when run with inappropriate arguments
-# TODO implement --help
-# TODO return meaningful error code
 # TODO make local variables all-lowercase
-# TODO error messages to STDERR
+# TODO trap clause
 for arg in "$@"
 do
 	case "$arg" in
@@ -324,3 +350,5 @@ do
 		#-------------------------------------------------------------------------------
 	esac
 done
+
+exit 0
