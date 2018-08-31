@@ -82,7 +82,6 @@ do
 done
 
 
-# TODO make local variables all-lowercase
 # TODO trap clause
 for arg in "$@"
 do
@@ -102,57 +101,59 @@ do
 		# 2) Install necessary applications
 		apps|all)
 
-		PACMAN=""
-		PACMAN_FLAGS=""
-		APPS="vim git g++ gcc-c++ clang valgrind make htop glances aircrack-ng macchanger okular qbittorrent speedtest-cli youtube-dl xclip"
+		check_internet_conn
 
-		echo "APPS: '$APPS'"
+		pacman=""
+		pacman_flags=""
+		apps="vim git g++ gcc-c++ clang valgrind make htop glances aircrack-ng macchanger okular qbittorrent speedtest-cli youtube-dl xclip"
+
+		echo "apps: '$apps'"
 		echo "Install all[a], abort installation[q] or choose apps[c] to install ?"
-		read -p ': ' ANS
+		read -p ': ' ans
 
 		# choose
-		if [[ "$ANS" =~ ^[cC]$ ]]
+		if [[ "$ans" =~ ^[cC]$ ]]
 		then
-			APPS_TMP=""
+			apps_tmp=""
 			echo "[q] for quit choosing"
-			for app in $APPS
+			for app in $apps
 			do
-				read -p "Install $app [y/n]? " ANS					
-				if [[ "$ANS" =~ ^[Yy]$ ]]
+				read -p "Install $app [y/n]? " ans					
+				if [[ "$ans" =~ ^[Yy]$ ]]
 				then
-					APPS_TMP+="$app "
-				elif [[ "$ANS" =~ ^[qQ]$ ]]
+					apps_tmp+="$app "
+				elif [[ "$ans" =~ ^[qQ]$ ]]
 				then
 					break
 				fi
 			done
 			echo
-			APPS="$APPS_TMP"
+			apps="$apps_tmp"
 
 		# quit
-		elif [[ "$ANS" =~ ^[qQ]$ ]]
+		elif [[ "$ans" =~ ^[qQ]$ ]]
 			then
-			APPS=""
+			apps=""
 		fi
 
 
 		# install apps, if there are any
-		if [ ! -z "$APPS" ]
+		if [ ! -z "$apps" ]
 		then
-			if [ -z "$PACMAN" ]
+			if [ -z "$pacman" ]
 			then
-				read -p 'Package manager: ' PACMAN
+				read -p 'Package manager: ' pacman
 			fi
 
-			if [ -z "$PACMAN_FLAGS" ]
+			if [ -z "$pacman_flags" ]
 			then
-				read -p 'Package flags: ' PACMAN_FLAGS
+				read -p 'Package flags: ' pacman_flags
 			fi
 
 			# install apps, one by one
-			for app in $APPS
+			for app in $apps
 			do
-				sudo $PACMAN $PACMAN_FLAGS $app
+				sudo $pacman $pacman_flags $app
 			done
 		else
 			echo "Nothing to install!"
@@ -164,29 +165,29 @@ do
 		#-------------------------------------------------------------------------------
 		# 3) Setup GIT
 		git_config|all)
-		GIT_NAME="Martin Safranek"
-		GIT_EMAIL="martinsafranek1997@seznam.cz"
-		GIT_EDITOR="vim"
+		git_name="Martin Safranek"
+		git_email="martinsafranek1997@seznam.cz"
+		git_editor="vim"
 
 		echo -n "Setting up git . . . "
-		if [ -z "$GIT_NAME" ]
+		if [ -z "$git_name" ]
 		then
-			read -p 'Git name: ' GIT_NAME
+			read -p 'Git name: ' git_name
 		fi
 
-		if [ -z "$GIT_EMAIL" ]
+		if [ -z "$git_email" ]
 		then
-			read -p 'Git email: ' GIT_EMAIL
+			read -p 'Git email: ' git_email
 		fi
 
-		if [ -z "$GIT_EDITOR" ]
+		if [ -z "$git_editor" ]
 		then
-			read -p 'Git editor: ' GIT_EDITOR
+			read -p 'Git editor: ' git_editor
 		fi
 
-		git config --global user.name "$GIT_NAME"
-		git config --global user.email "$GIT_EMAIL"
-		git config --global core.editor "$GIT_EDITOR"
+		git config --global user.name "$git_name"
+		git config --global user.email "$git_email"
+		git config --global core.editor "$git_editor"
 
 		git config --global alias.co checkout
 		git config --global alias.br branch
@@ -205,74 +206,94 @@ do
 		# 4) Fetch GIT reposiroties & copy them to home & setup bashrc and vimrc
 		git_clone|all)
 
-		HOME_DIR=""
-		TMP_DIR='/tmp/git_repos_tmp'
-		CLONED_DIRS="vimrc bashrc develop dokumenty"
-		TIMESTAMP=$(date +%Y-%m-%d.%H:%M:%S)
+		check_internet_conn
+
+		home_dir=""
+		tmp_dir='/tmp/git_repos_tmp'
+		cloned_dirs="vimrc bashrc develop dokumenty"
+		timestamp=$(date +%Y-%m-%d.%H%M)
+
 
 		echo -e "Cloning git repositories and setting up vimrc/bashrc . . .\n"
-		echo "REPOSITORIES: '$CLONED_DIRS'"
+		echo "REPOSITORIES: '$cloned_dirs'"
 
 		# prompt to choose directories to clone
-		CLONED_DIRS_TMP=""
-		for dir in $CLONED_DIRS
+		cloned_dirs_tmp=""
+		for dir in $cloned_dirs
 		do
-			read -p "Clone $dir [y/n]? " ANS
-			if [[ $ANS =~ ^[Yy]$ ]]
+			read -p "Clone $dir [y/n]? " ans
+			if [[ $ans =~ ^[Yy]$ ]]
 			then
-				CLONED_DIRS_TMP+="$dir "
+				cloned_dirs_tmp+="$dir "
 			fi
 		done
 
-		CLONED_DIRS="$CLONED_DIRS_TMP"
+		cloned_dirs="$cloned_dirs_tmp"
 
-		# clone directories, if there are any
-		if [ ! -z "$CLONED_DIRS" ]
+		# if there is something to clone, proceed
+		if [ ! -z "$cloned_dirs" ]
 		then
-			echo -e "\nCloning '$CLONED_DIRS' ..."
+			echo -e "\nCloning '$cloned_dirs' ..."
 
-			# ask user for home directory
-			if [ -z "$HOME_DIR" ]
+			# ask user for home directory 
+			if [ -z "$home_dir" ]
 			then
-				HOME_DIR="$HOME"
-				echo "Is '${HOME_DIR}' your home directory ?'"
-				read -p "[y/n] " ANS
+				home_dir="$HOME"
+				echo "Is '${home_dir}' your home directory ?'"
+				read -p "[y/n] " ans
 
-				if ! [[ "$ANS" =~ ^[Yy]$ ]]
+				if ! [[ "$ans" =~ ^[Yy]$ ]]
 				then
-					read -p 'Enter home directory: ' HOME_DIR
+					read -p 'Enter home directory: ' home_dir
 				fi
 			fi
 
-			# create TMP_DIR
-			if [ ! -d "${TMP_DIR}" ]
+			# create tmp_dir for cloning git repositories
+			if [ ! -d "${tmp_dir}" ]
 			then
-				mkdir "${TMP_DIR}"
+				mkdir "${tmp_dir}"
 			fi
 
-			cd "${TMP_DIR}"
-
-
-			# Loop throw all CLONED_DIR and ...
-			# a) Clone git repo to /tmp/TMP_DIR
-			# b) Backup overlapping directory in HOME_DIR
-			# c) Move cloned git repos from /tmp/TMP_DIR to HOME_DIR
-			for dir in $CLONED_DIRS
+			# Loop throw all cloned_dir and ...
+			# a) Clone git repo to /tmp/tmp_dir
+			# b) Backup overlapping directory in home_dir
+			# c) Move cloned git repositories from /tmp/tmp_dir to home_dir
+			for dir in $cloned_dirs
 			do
 
-				# TODO make possible retry after wrong password
 				# TODO add ssh option to .git/config
-				# a) Clone git repo 
-				git clone https://kaldomain@bitbucket.org/kaldomain/"${dir}".git 
+				# a) Clone git repo, with fail check
+				while true
+				do
+					clone_st=true
+					git -C "${tmp_dir}" clone https://kaldomain@bitbucket.org/kaldomain/"${dir}".git 
+					if [ $? -ne 0 ]
+					then
+						clone_st=false
+						echo "Cloning '${dir}' into '${tmp_dir}' failed"
+						read -p 'Retry [y/n]' ans
+						if [[ "$ans" =~ ^[yY]$ ]]
+						then
+							continue
+						fi
+					fi
+					break
+				done
 
-				# b) If such directory exists in HOME_DIR, backup it
-				if [ -d "${HOME_DIR}/${dir}" ]
+				# if cloning was not succesfull, go to the next in list
+				if [ ! $clone_st ]
 				then
-					mv "${HOME_DIR}/${dir}" "${HOME_DIR}/${dir}_$TIMESTAMP.bak"
+					continue
+				fi
+
+				# b) If such directory exists in home_dir, backup it
+				if [ -d "${home_dir}/${dir}" ]
+				then
+					mv "${home_dir}/${dir}" "${home_dir}/${dir}_$timestamp.bak"
 				fi
 
 				# c) move
-				mv "${TMP_DIR}/${dir}" "${HOME_DIR}"
+				mv "${tmp_dir}/${dir}" "${home_dir}"
 				print_delimiter
 			done
 
@@ -280,27 +301,27 @@ do
 			# Setup VIMRC
 			
 			# if there is vimrc to setup
-			if [ -e "${HOME_DIR}/vimrc/vimrc" ]
+			if [ -e "${home_dir}/vimrc/vimrc" ]
 			then
 				echo -n "Setting up VIMRC . . . "
 
 				# backup old vimrc, if there is any
-				if [ -e "${HOME_DIR}/.vimrc" ]
+				if [ -e "${home_dir}/.vimrc" ]
 				then
-					mv "${HOME_DIR}/.vimrc" "${HOME_DIR}/.vimrc_$TIMESTAMP.bak"
+					mv "${home_dir}/.vimrc" "${home_dir}/.vimrc_$timestamp.bak"
 				fi
 
 				# backup old .vimrc_dir, if there is any
-				if [ -e "${HOME_DIR}/.vimrc_dir" ]
+				if [ -e "${home_dir}/.vimrc_dir" ]
 				then
-					mv "${HOME_DIR}/.vimrc_dir" "${HOME_DIR}/.vimrc_dir_$TIMESTAMP.bak"
+					mv "${home_dir}/.vimrc_dir" "${home_dir}/.vimrc_dir_$timestamp.bak"
 				fi
 
 				# create .vimrc_dir & copy all content to it
-				mv "${HOME_DIR}/vimrc" "${HOME_DIR}/.vimrc_dir"
+				mv "${home_dir}/vimrc" "${home_dir}/.vimrc_dir"
 
 				# set symlink to vimrc
-				ln -sf "${HOME_DIR}/.vimrc_dir/vimrc" "${HOME_DIR}/.vimrc" 
+				ln -sf "${home_dir}/.vimrc_dir/vimrc" "${home_dir}/.vimrc" 
 
 				echo "done"
 				print_delimiter
@@ -312,30 +333,30 @@ do
 
 			# variable used to set the correct version of bashrc
 			# 	-> bashrc_fedora, bashrc_arch, bashrc_ubuntu
-			SYSTEM_ID=$(cat /etc/*-release | grep -E '^ID=' | head -n 1 |cut  -d'=' -f2)
+			system_id=$(cat /etc/*-release | grep -E '^ID=' | head -n 1 |cut  -d'=' -f2)
 			
 			# if there is bashrc to setup
-			if [ -e "${HOME_DIR}/bashrc/bashrc_${SYSTEM_ID}" ]
+			if [ -e "${home_dir}/bashrc/bashrc_${system_id}" ]
 			then
 				echo -n "Setting up BASHRC . . . "
 
 				# backup old bashrc, if there is any
-				if [ -e "${HOME_DIR}/.bashrc" ]
+				if [ -e "${home_dir}/.bashrc" ]
 				then
-					mv "${HOME_DIR}/.bashrc" "${HOME_DIR}/.bashrc_$TIMESTAMP.bak"
+					mv "${home_dir}/.bashrc" "${home_dir}/.bashrc_$timestamp.bak"
 				fi
 
 				# backup old .bashrc_dir, if there is any
-				if [ -e "${HOME_DIR}/.bashrc_dir" ]
+				if [ -e "${home_dir}/.bashrc_dir" ]
 				then
-					mv "${HOME_DIR}/.bashrc_dir" "${HOME_DIR}/.bashrc_dir_$TIMESTAMP.bak"
+					mv "${home_dir}/.bashrc_dir" "${home_dir}/.bashrc_dir_$timestamp.bak"
 				fi
 
 				# create .bashrc_dir & copy all content to it
-				mv "${HOME_DIR}/bashrc" "${HOME_DIR}/.bashrc_dir"
+				mv "${home_dir}/bashrc" "${home_dir}/.bashrc_dir"
 
 				# set symlink to correct bashrc 
-				ln -sf "${HOME_DIR}/.bashrc_dir/bashrc_${SYSTEM_ID}" "${HOME_DIR}/.bashrc" 
+				ln -sf "${home_dir}/.bashrc_dir/bashrc_${system_id}" "${home_dir}/.bashrc" 
 
 				echo "done"
 			fi
@@ -343,8 +364,8 @@ do
 			echo "There is nothing to clone!"
 		fi
 
-		# cleanup /tmp/TMP_DIR
-		rm -rf "${TMP_DIR}"
+		# cleanup /tmp/tmp_dir
+		rm -rf "${tmp_dir}"
 		;;&
 		
 		#-------------------------------------------------------------------------------
