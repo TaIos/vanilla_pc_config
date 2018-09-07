@@ -105,7 +105,7 @@ do
 
 		pacman=""
 		pacman_flags=""
-		apps="vim git g++ gcc-c++ clang valgrind make htop glances aircrack-ng macchanger okular keepass.x86_64 keepass qbittorrent speedtest-cli youtube-dl xclip"
+		apps="vim git g++ gcc-c++ clang valgrind make htop glances bash-completion aircrack-ng macchanger okular keepass.x86_64 keepass qbittorrent speedtest-cli youtube-dl xclip"
 
 		echo "apps: '$apps'"
 		echo "Install all[a], abort installation[q] or choose apps[c] to install ?"
