@@ -194,6 +194,8 @@ do
 		git config --global alias.ci commit
 		git config --global alias.st status
 		git config --global alias.ll 'log --oneline --graph --all --decorate'
+		git config --global alias.unstage 'reset HEAD --'
+		git config --global alias.last 'log -1 HEAD'
 
 		# keep password cached in memory for (by default) 15 minutes
 		git config --global credential.helper cache
