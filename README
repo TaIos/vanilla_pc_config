@@ -1,0 +1,26 @@
+This script is for automating repetetive tasks 
+after installing new Linux system
+(eg: cloning git repositories, installing apps, setting vimrc/bashrc ...)
+
+##########################################
+## Developed by Martin Šafránek in 2018 ##
+## email: martinsafranek1997@seznam.cz  ##
+##########################################
+
+Particular sections of this script can be invoked passing argument/s
+   (multiple arguments can be passed at once)
+arguments: see [options] bellow
+
+options="all terminal apps git_config git_clone"
+[all] executes every option
+[terminal] set gnome-terminal to open maximized for all users
+[apps] install list of applications using specified package manager
+[git_config] set git aliases, name, email, editor, enable loading git password into cache
+[git_clone] clone list of git repositories to home directory, if there
+   was bashrc/vimrc cloned, backup current bashrc/vimrc and replace it with cloned
+
+EXIT_VALUES
+[0] all OK
+[1] no arguments
+[2] invalid argument/s
+[3] no internet connection

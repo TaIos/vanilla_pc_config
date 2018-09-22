@@ -27,6 +27,8 @@ options="all terminal apps git_config git_clone"
 # [2] invalid argument/s
 # [3] no internet connection
 ################################################################################
+#TODO cloned repos are with root privilages !!!
+################################################################################
 
 function print_delimiter() {
 	for i in {1..80}
